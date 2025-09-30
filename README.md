@@ -74,6 +74,38 @@ It’s an all-in-one, secure web application that helps you:
 
 Clone the repo and run locally:  
 
+
+
+🙌 Contributing
+
+Pull requests welcome!
+
+Fork the project
+
+Create a branch (git checkout -b feature-name)
+
+Make changes & commit (git commit -m 'Add feature')
+
+Push to branch (git push origin feature-name)
+
+Open a PR
+
+📜 License
+
+Released under the MIT License.
+See LICENSE
+ for full text.
+
+📬 Contact
+
+Have feedback or ideas? Reach out!
+
+✉️ Email: AIMCTGBD@gmail.com
+
+🐛 Issues: GitHub Issues
+
+🌐 Website: iaco.netlify.app
+
 ```bash
 git clone https://github.com/aimzworld007/ICAO_image_verification_tool.git
 cd ICAO_image_verification_tool
