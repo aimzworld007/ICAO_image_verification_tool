@@ -1,8 +1,8 @@
 {
-  "name": "Professional ICAO Photo Suite",
+  "name": "ICAO Standard Photo Check Tool",
   "short_name": "ICAO Tool",
-  "description": "Your all-in-one solution to verify, perfect, and manage photos & documents for official applications.",
-  "start_url": "/index.html",
+  "description": "A professional ICAO photo check tool, specialized for the UAE Emirates ID.",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#1e293b",
@@ -21,3 +21,5 @@
     }
   ]
 }
+
+
