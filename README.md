@@ -1,38 +1,81 @@
-# 
-The Ultimate Tool for Perfect ICAO-Compliant Photos and Documents
+<p align="center">
+  <img src="logo.jpg" alt="ICAO Photo Tool Logo" width="650" />
+</p>
 
-Navigating the strict requirements for official documents like passports, visas, and the Emirates ID can be challenging. A rejected photo means delays, frustration, and extra cost. Our Professional ICAO Photo Tool is an all-in-one web application designed to eliminate the guesswork and empower you to create perfectly compliant photos and manage your application documents with ease.
+<h1 align="center">📸 ICAO Photo & Document Tool</h1>
+<p align="center">
+  The ultimate tool for creating ICAO-compliant photos and preparing official documents.  
+</p>
 
-Intelligent ICAO Photo Verification
+<p align="center">
+  <a href="https://iaco.netlify.app/">🌐 Live Demo</a> • 
+  <a href="#-features">✨ Features</a> • 
+  <a href="#-installation">📦 Installation</a> • 
+  <a href="#-contributing">🙌 Contributing</a>
+</p>
 
-At the core of our application is a powerful, AI-driven verification engine. Simply upload your photo and receive an instant analysis with a clear pass/fail score. Our tool meticulously checks your image against official ICAO standards for:
+---
 
-Correct head position and centering
+## 🔥 Overview  
 
-Neutral facial expression
+Getting official documents approved — passports, visas, Emirates ID — requires strict ICAO photo standards.  
+A single rejected photo means delays, extra cost, and frustration.  
 
-Proper aspect ratio and dimensions
+The **ICAO Photo & Document Tool** eliminates guesswork.  
+It’s an all-in-one, secure web application that helps you:  
 
-Background compliance
+- ✅ Verify photos against ICAO compliance  
+- 🎨 Edit and fix issues with professional tools  
+- 📂 Manage PDFs and images for applications  
+- 🔒 Keep everything private — all processing is done in your browser  
 
-If your photo fails, our system provides a detailed list of issues and offers intelligent "Fix This" buttons that take you directly to the right tool to instantly correct the specific problem.
+---
 
-Advanced, Professional-Grade Photo Editor
+## ✨ Features  
 
-Move beyond basic cropping. Our advanced photo editor gives you the control you need to perfect your image. Key features include:
+### 🔍 AI-Powered ICAO Photo Verification  
+- ✅ Correct head position & centering  
+- 😐 Neutral facial expression  
+- 📏 Exact aspect ratio & dimensions  
+- 🏳️ Background compliance (pure white / light background)  
+- ⚡ Instant pass/fail with detailed issue list & one-click “Fix This” buttons  
 
-One-Click Fixes: Instantly crop to the official 35x45mm ratio or replace any background with a compliant, pure white one.
+---
 
-Precise Adjustments: Fine-tune your photo with easy-to-use sliders for brightness, contrast, sharpness, and saturation.
+### 🖼️ Professional Photo Editing  
+- 🎯 **One-Click Fixes**: Auto-crop to 35×45 mm, replace background with pure white  
+- 🎚️ **Fine Adjustments**: Brightness, contrast, sharpness, saturation  
+- 🔄 **Essential Tools**: Rotate, flip, and fine-tune orientation  
 
-Essential Tools: Rotate and flip your image to get the perfect orientation.
+---
 
-Complete Document Management Suite
+### 📂 Document Management Suite  
+- 📑 **PDF Tools**: Merge, split, convert PDFs to images, combine multiple PDFs into one  
+- 🖼️ **Image Tools**: Merge two photos (e.g. ID front & back) vertically or horizontally  
+- 🔒 100% Secure: Runs locally in your browser — no files uploaded  
 
-Our application is more than just a photo tool. It’s a complete solution for preparing your application files. All processing is done securely in your browser, and nothing is uploaded to a server.
+---
 
-PDF Tools: Convert multi-page PDFs into high-quality images, combine several images into a single PDF, or merge multiple PDF files into one consolidated document.
+## 🎯 Why Use This Tool?  
+✔️ Avoid rejections & delays  
+✔️ Save time with automated verification  
+✔️ Professional photo editing without Photoshop  
+✔️ Secure & private — everything stays in your browser  
 
-Image Tools: Seamlessly merge two separate photos—like the front and back of an ID—into a single image file, either vertically or horizontally.
+---
 
-Prepare your application with confidence. Our tool provides the professional features you need to get it right the first time.
+## 🚀 Live Demo  
+
+👉 Try it here: [**iaco.netlify.app**](https://iaco.netlify.app/)  
+
+---
+
+## 📦 Installation (Local Development)  
+
+Clone the repo and run locally:  
+
+```bash
+git clone https://github.com/aimzworld007/ICAO_image_verification_tool.git
+cd ICAO_image_verification_tool
+npm install
+npm start
