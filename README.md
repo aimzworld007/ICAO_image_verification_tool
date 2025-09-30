@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.jpg" alt="ICAO Photo Tool Logo" width="650" />
+  <img src="logo.png" alt="ICAO Photo Tool Logo" width="650" />
 </p>
 
 <h1 align="center">📸 ICAO Photo & Document Tool</h1>
