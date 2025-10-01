@@ -1,567 +1,502 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Meta Tags -->
-    <title>UAE Emirates ID Photo Tool | AI Photo Generator & ICAO Check</title>
-    <meta name="description" content="Create a perfect, ICAO-compliant photo for your UAE Emirates ID. Our AI-powered tool verifies, edits, and enhances your photo to meet official ICP standards.">
-    <meta name="keywords" content="Emirates ID photo, ICAO photo UAE, ICP photo requirements, UAE visa photo, passport photo UAE, AI photo generator, photo editor, photo verification">
+    <title>UAE Emirates ID Photo Tool | AI & WASM Generator</title>
+    <meta name="description" content="A simplified, fast, and functional tool to create a perfect, ICAO-compliant photo for your UAE Emirates ID using AI (Nano Banana) & WebAssembly.">
+    <meta name="keywords" content="Emirates ID photo, ICAO photo UAE, WebAssembly photo tool, AI photo generator, photo verification, Gemini AI, Nano Banana">
     <meta name="author" content="Aimzit">
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e293b">
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/2563eb/ffffff?text=EID">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-live-url.com/">
-    <meta property="og:title" content="UAE Emirates ID Photo Tool | AI Photo Generator & ICAO Check">
-    <meta property="og:description" content="Create a perfect, ICAO-compliant photo for your UAE Emirates ID. Our AI-powered tool verifies, edits, and enhances your photo to meet official ICP standards.">
-    <meta property="og:image" content="https://placehold.co/1200x630/2563eb/ffffff?text=Emirates+ID+Photo+Tool">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://your-live-url.com/">
-    <meta property="twitter:title" content="UAE Emirates ID Photo Tool | AI Photo Generator & ICAO Check">
-    <meta property="twitter:description" content="Create a perfect, ICAO-compliant photo for your UAE Emirates ID. Our AI-powered tool verifies, edits, and enhances your photo to meet official ICP standards.">
-    <meta property="twitter:image" content="https://placehold.co/1200x630/2563eb/ffffff?text=Emirates+ID+Photo+Tool">
-
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Deferred scripts for faster page load -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js" defer></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js" defer></script>
+    <script async src="https://docs.opencv.org/4.9.0/opencv.js" onload="onOpenCvReady();"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
         html { scroll-behavior: smooth; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            transition: background-color 0.3s ease;
-        }
-        .dark body { background-color: #0f172a; }
-        
-        .loader {
-            border: 5px solid #e2e8f0;
-            border-top: 5px solid #2563eb;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; transition: background-color 0.3s ease; color: #0f172a;}
+        .dark body { background-color: #020617; color: #e2e8f0; }
+        .loader { border: 5px solid #e2e8f0; border-top: 5px solid #2563eb; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .hidden { display: none; }
-        
-        .main-card {
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease-in-out;
-        }
-        .dark .main-card { background-color: #1e293b; border: 1px solid #334155; }
-
-        .tab { 
-            cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #475569; border-bottom: 3px solid transparent; 
-            transition: all 0.2s; position: relative; top: 1px; white-space: nowrap;
-        }
+        .hidden { display: none !important; }
+        .main-card { background-color: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .dark .main-card { background-color: #0f172a; border: 1px solid #1e293b; }
+        .tab { cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: #475569; border-bottom: 3px solid transparent; transition: all 0.2s; position: relative; top: 1px; white-space: nowrap; flex-shrink: 0; }
         .dark .tab { color: #94a3b8; }
-        .tab:hover { color: #2563eb; }
-        .dark .tab:hover { color: #3b82f6; }
         .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
         .dark .tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
-        
-        .btn { 
-            background-color: #2563eb;
-            color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; text-align: center; display: inline-block; border: none; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
-        }
-        .btn:hover { transform: translateY(-2px); background-color: #1d4ed8; box-shadow: 0 7px 10px rgba(37, 99, 235, 0.3); }
-        .btn-secondary { background-color: #64748b; box-shadow: 0 4px 6px rgba(100, 116, 139, 0.2); }
-        .btn-secondary:hover { background-color: #475569; box-shadow: 0 7px 10px rgba(100, 116, 139, 0.3); }
-        .btn-disabled { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
-        .btn-disabled:hover { transform: none; box-shadow: 0 4px 6px rgba(100, 116, 139, 0.2); }
-
-        .file-input-label { 
-            border: 2px dashed #cbd5e1; padding: 2rem; text-align: center; cursor: pointer; border-radius: 0.5rem;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        .dark .file-input-label { border-color: #475569; }
-        .file-input-label:hover, .drag-over { background-color: white; border-color: #2563eb; }
-        .dark .file-input-label:hover, .dark .drag-over { background-color: #334155; border-color: #3b82f6; }
-
-        .score-circle {
-            width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; font-weight: 800; color: white; transition: all 0.3s;
-        }
-
+        .btn { background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; display: inline-flex; align-items: center; justify-content: center; border: none; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); background-color: #1d4ed8; box-shadow: 0 7px 10px rgba(37, 99, 235, 0.3); }
+        .btn-secondary { background-color: #475569; box-shadow: 0 4px 6px rgba(100, 116, 139, 0.2); }
+        .btn-secondary:hover:not(:disabled) { background-color: #334155; box-shadow: 0 7px 10px rgba(100, 116, 139, 0.3); }
+        .btn:disabled { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+        .file-input-label { border: 2px dashed #cbd5e1; padding: 2rem; text-align: center; cursor: pointer; border-radius: 0.5rem; transition: background-color 0.2s, border-color 0.2s; }
+        .dark .file-input-label { border-color: #334155; }
+        .file-input-label:hover, .drag-over { background-color: #eff6ff; border-color: #2563eb; }
+        .dark .file-input-label:hover, .dark .drag-over { background-color: #1e293b; border-color: #3b82f6; }
+        .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; transition: all 0.3s; }
         .tab-panel { animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        #signature-canvas { cursor: crosshair; border: 2px dashed #cbd5e1; border-radius: 0.5rem; }
-        .dark #signature-canvas { border-color: #475569; background-color: #334155;}
-
         .tabs-container::-webkit-scrollbar { display: none; }
         .tabs-container { -ms-overflow-style: none; scrollbar-width: none; }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 15px rgba(0,0,0,0.2); transition: bottom 0.5s ease-in-out; z-index: 100; text-align: center; }
+        #toast.show { bottom: 30px; }
     </style>
 </head>
-<body class="text-slate-900 dark:text-slate-200">
+<body class="dark:bg-slate-900">
 
-    <div id="loader-overlay" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+    <div id="loader-overlay" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex-col items-center justify-center">
         <div class="loader"></div>
-        <p id="loader-text" class="text-white text-lg ml-4 font-semibold">Processing...</p>
+        <p id="loader-text" class="text-white text-lg ml-4 font-semibold mt-4">Processing...</p>
     </div>
     
+    <div id="toast"></div>
+
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
         <header class="relative text-center mb-10">
-            <div class="absolute top-0 right-0 flex items-center space-x-2 md:space-x-4">
-                <a href="https://www.buymeacoffee.com/aimzworld007" target="_blank" class="text-sm font-semibold text-slate-700 dark:text-slate-400 hover:text-blue-500 transition-colors hidden md:inline-block" data-lang="support">Support this tool ☕</a>
-                <select id="language-selector" class="text-sm rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 focus:ring-blue-500 focus:border-blue-500 py-1">
-                    <option value="en">English</option>
-                    <option value="ar">العربية</option>
-                </select>
-                <button id="dark-mode-toggle" class="p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                    <span id="sun-icon">☀️</span>
-                    <span id="moon-icon" class="hidden">🌙</span>
+            <div class="absolute top-0 right-0">
+                 <button id="dark-mode-toggle" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <span id="sun-icon">☀️</span><span id="moon-icon" class="hidden">🌙</span>
                 </button>
             </div>
             <div class="inline-block bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md mb-4">
-                 <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" /></svg>
+                <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" /></svg>
             </div>
-            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white" data-lang="main-title">UAE Emirates ID Photo Tool</h1>
-            <p class="text-lg text-slate-600 dark:text-slate-400 mt-2 max-w-3xl mx-auto" data-lang="main-subtitle">Your all-in-one solution to verify and perfect photos for your Emirates ID application.</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold">UAE Emirates ID Photo Tool</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mt-2 max-w-3xl mx-auto">A simple, working tool to check, create, and edit your EID photos.</p>
         </header>
 
         <div class="main-card">
             <div class="border-b border-slate-200 dark:border-slate-700">
                 <nav class="tabs-container -mb-px flex space-x-1 md:space-x-4 px-2 md:px-6 overflow-x-auto" id="tab-nav">
-                    <button class="tab active" data-tab="icao" data-lang="tab-icao">EID Photo Check</button>
-                    <button class="tab" data-tab="ai-magic" data-lang="tab-ai-magic">✨ AI Magic Fixes</button>
-                    <button class="tab" data-tab="ai-studio" data-lang="tab-ai-studio">AI Studio</button>
-                    <button class="tab" data-tab="editor" data-lang="tab-editor">Editor</button>
-                    <button class="tab" data-tab="pdf" data-lang="tab-pdf">PDF Tools</button>
-                    <button class="tab" data-tab="image" data-lang="tab-image">Image Tools</button>
-                    <button class="tab" data-tab="tips" data-lang="tab-tips">Tips & Examples</button>
+                    <button class="tab active" data-tab="icao">1. EID Photo Check</button>
+                    <button class="tab" data-tab="ai-studio">2. AI Photo Studio</button>
+                    <button class="tab" data-tab="editor">3. Manual Editor</button>
                 </nav>
             </div>
 
             <div class="p-4 md:p-8" id="tab-content-container">
                  <div id="tab-content-icao" class="tab-panel">
-                    <div class="grid md:grid-cols-2 gap-8">
+                    <h2 class="text-2xl font-bold mb-4">Check Your Photo's Compliance (WASM)</h2>
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
                         <div>
                             <input type="file" id="verify-photo-input" class="hidden" accept="image/*">
                             <label for="verify-photo-input" id="verify-drop-zone" class="file-input-label block mb-4">
-                                <span class="font-semibold text-blue-600 dark:text-blue-400" data-lang="upload-cta">Click to upload</span>
-                                <span data-lang="upload-dnd"> or drag & drop</span>
+                                <span class="font-semibold text-blue-600 dark:text-blue-400">Click to upload</span>
+                                <span> or drag & drop</span>
                             </label>
                             <div class="relative w-full aspect-[35/45] bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden">
                                 <img id="verify-preview" class="hidden object-contain max-w-full max-h-full" alt="Photo Preview">
-                                <p id="verify-placeholder" class="text-slate-500 dark:text-slate-400" data-lang="photo-preview">Photo Preview</p>
+                                <p id="verify-placeholder" class="text-slate-500 dark:text-slate-400">Photo Preview</p>
                             </div>
-                            <button id="verify-btn" class="btn w-full mt-4" data-lang="verify-btn">Verify Emirates ID Photo</button>
+                            <button id="verify-btn" class="btn w-full mt-4" disabled>Verify Photo</button>
                         </div>
                         <div id="verify-results-container" class="hidden">
-                            <h3 class="text-2xl font-bold mb-4 text-slate-900 dark:text-white" data-lang="results-title">Verification Results</h3>
+                            <h3 class="text-2xl font-bold mb-4">Verification Results</h3>
                             <div class="flex items-center space-x-6 mb-6">
-                                <div id="score-circle" class="score-circle"></div>
-                                <div id="score-text" class="text-3xl font-bold"></div>
+                                <div id="score-circle" class="score-circle"></div><div id="score-text" class="text-3xl font-bold"></div>
                             </div>
                             <div id="verify-results-list" class="space-y-3"></div>
                         </div>
                     </div>
                 </div>
-                <div id="tab-content-ai-magic" class="tab-panel hidden">
-                    <div class="grid md:grid-cols-2 gap-12">
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-center text-slate-900 dark:text-white" data-lang="ai-report-title">AI Photo Report</h3>
-                            <p class="text-sm text-center text-slate-500 dark:text-slate-400" data-lang="ai-report-subtitle">Get detailed, human-like feedback on your photo's compliance.</p>
-                            <input type="file" id="ai-report-input" class="hidden" accept="image/*">
-                            <label for="ai-report-input" class="file-input-label block"><span class="font-semibold text-blue-600 dark:text-blue-400" data-lang="upload-cta">Click to upload</span></label>
-                            <img id="ai-report-preview" class="hidden w-48 mx-auto rounded-lg shadow-sm my-4">
-                            <button id="ai-report-btn" class="btn w-full btn-disabled" disabled data-lang="ai-report-btn">Get AI Report</button>
-                            <div id="ai-report-output" class="hidden mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm space-y-2"></div>
-                        </div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-center text-slate-900 dark:text-white" data-lang="ai-bg-title">AI Background Changer</h3>
-                             <p class="text-sm text-center text-slate-500 dark:text-slate-400" data-lang="ai-bg-subtitle">Magically replace your photo's background with one click.</p>
-                            <input type="file" id="ai-bg-input" class="hidden" accept="image/*">
-                            <label for="ai-bg-input" class="file-input-label block"><span class="font-semibold text-blue-600 dark:text-blue-400" data-lang="upload-cta">Click to upload</span></label>
-                             <div class="grid grid-cols-2 gap-4 items-center">
-                                <img id="ai-bg-preview" class="hidden w-full rounded-lg shadow-sm my-4">
-                                <img id="ai-bg-output" class="hidden w-full rounded-lg shadow-sm my-4">
-                            </div>
-                            <input type="text" id="ai-bg-prompt" class="w-full p-2 border rounded-md dark:bg-slate-700 dark:border-slate-600" value="A pure white background">
-                            <button id="ai-bg-btn" class="btn w-full btn-disabled" disabled data-lang="ai-bg-btn">Change Background</button>
-                        </div>
-                    </div>
-                </div>
+                
                 <div id="tab-content-ai-studio" class="tab-panel hidden">
                      <div class="text-center">
-                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white" data-lang="ai-title">AI-Powered Photo Transformation</h2>
-                        <p class="text-slate-700 dark:text-slate-400 mt-1 mb-6 max-w-2xl mx-auto" data-lang="ai-subtitle">Upload any portrait photo and our AI will generate a professional, studio-quality ID photograph compliant with ICAO standards.</p>
+                        <h2 class="text-2xl font-bold">AI Photo Studio (Powered by "Nano Banana")</h2>
+                        <p class="text-slate-600 dark:text-slate-400 mt-1 mb-6 max-w-2xl mx-auto">Upload any photo. Our AI will generate a professional, studio-quality ID photograph.</p>
                         <div class="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
                             <div>
                                 <input type="file" id="ai-photo-input" class="hidden" accept="image/*">
-                                <label for="ai-photo-input" class="file-input-label block mb-4" data-lang="ai-upload">Upload Your Photo</label>
+                                <label for="ai-photo-input" class="file-input-label block mb-4">Upload Your Photo</label>
                                 <div class="relative w-full aspect-[35/45] bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden">
                                     <img id="ai-preview" class="hidden object-contain max-w-full max-h-full" alt="AI Photo Preview">
-                                    <p id="ai-placeholder" class="text-slate-500 dark:text-slate-400" data-lang="input-preview">Input Preview</p>
+                                    <p id="ai-placeholder" class="text-slate-500 dark:text-slate-400">Input Preview</p>
                                 </div>
                             </div>
                             <div>
                                  <div class="relative w-full aspect-[35/45] bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden">
                                     <img id="ai-output" class="hidden object-contain max-w-full max-h-full" alt="AI Generated Photo">
-                                    <p id="ai-output-placeholder" class="text-slate-500 dark:text-slate-400" data-lang="output-preview">AI Generated Output</p>
-                                    <div id="ai-loader" class="hidden loader"></div>
-                                </div>
-                                <div id="ai-download-options" class="hidden grid grid-cols-3 gap-2 mt-4">
-                                     <button id="ai-download-jpg" class="btn btn-secondary text-sm">JPG</button>
-                                     <button id="ai-download-png" class="btn btn-secondary text-sm">PNG</button>
-                                     <button id="ai-download-pdf" class="btn btn-secondary text-sm">PDF</button>
+                                    <p id="ai-output-placeholder" class="text-slate-500 dark:text-slate-400">AI Generated Output</p>
                                 </div>
                             </div>
                         </div>
-                        <button id="ai-generate-btn" class="btn mt-8 btn-disabled" disabled data-lang="ai-generate-btn">Generate Professional Photo</button>
+                        <button id="ai-generate-btn" class="btn mt-8" disabled>Generate Professional Photo</button>
                     </div>
                 </div>
+
                 <div id="tab-content-editor" class="tab-panel hidden">
+                     <h2 class="text-2xl font-bold mb-4 text-center">Essential Photo Editor</h2>
                      <input type="file" id="editor-photo-input" class="hidden" accept="image/*">
-                     <label for="editor-photo-input" id="editor-uploader" class="file-input-label block mb-4" data-lang="editor-upload">Upload a photo to start editing</label>
+                     <label for="editor-photo-input" id="editor-uploader" class="file-input-label block mb-4">Upload a photo to start editing</label>
                      <div id="editor-workspace" class="hidden grid lg:grid-cols-5 gap-8 items-start">
                         <div class="lg:col-span-3">
                              <canvas id="editor-canvas" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"></canvas>
                              <div class="flex items-center justify-center space-x-4 mt-4">
-                                <button id="undo-btn" class="btn btn-secondary text-sm btn-disabled" disabled>&#x21A9; <span data-lang="undo">Undo</span></button>
-                                <button id="redo-btn" class="btn btn-secondary text-sm btn-disabled" disabled>&#x21AA; <span data-lang="redo">Redo</span></button>
+                                <button id="undo-btn" class="btn btn-secondary text-sm" disabled>&#x21A9; Undo</button>
+                                <button id="redo-btn" class="btn btn-secondary text-sm" disabled>&#x21AA; Redo</button>
                              </div>
-                             <button id="editor-download-btn" class="btn w-full mt-4" data-lang="editor-download">Download Edited Photo</button>
                         </div>
                         <div class="lg:col-span-2 space-y-5">
-                             <div>
-                                <h4 class="font-semibold mb-2" data-lang="one-click-tools">One-Click Tools</h4>
+                            <div>
+                                <h4 class="font-semibold mb-2">One-Click Tools</h4>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button id="crop-btn" class="btn text-sm" data-lang="crop-ratio">Crop to ID Ratio</button>
-                                    <button id="bg-white-btn" class="btn text-sm" data-lang="white-bg">White Background</button>
-                                    <button id="auto-enhance-btn" class="btn text-sm col-span-2" data-lang="auto-enhance">Auto-Enhance</button>
+                                    <button class="editor-tool-btn btn text-sm" data-tool="crop">Crop to ID Ratio</button>
+                                    <button class="editor-tool-btn btn text-sm" data-tool="enhance">Auto-Enhance</button>
+                                    <button class="editor-tool-btn btn btn-secondary text-sm" data-tool="rotate">Rotate Left</button>
+                                    <button class="editor-tool-btn btn btn-secondary text-sm" data-tool="flip">Flip Horizontal</button>
                                 </div>
                             </div>
-                            <div>
-                                <h4 class="font-semibold mb-2" data-lang="manual-tools">Manual Tools</h4>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button id="rotate-left-btn" class="btn btn-secondary text-sm" data-lang="rotate-left">Rotate Left</button>
-                                    <button id="flip-h-btn" class="btn btn-secondary text-sm" data-lang="flip-h">Flip Horizontal</button>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold mb-2" data-lang="custom-size">Custom Size (pixels)</h4>
-                                <div class="flex items-center space-x-2">
-                                    <input type="number" id="custom-width" placeholder="Width" class="w-full p-2 border rounded-md dark:bg-slate-700 dark:border-slate-600" data-lang-placeholder="width">
-                                    <span class="text-slate-500">x</span>
-                                    <input type="number" id="custom-height" placeholder="Height" class="w-full p-2 border rounded-md dark:bg-slate-700 dark:border-slate-600" data-lang-placeholder="height">
-                                    <button id="resize-btn" class="btn text-sm !px-4" data-lang="resize">Resize</button>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold mb-2" data-lang="adjustments">Adjustments</h4>
-                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300" data-lang="brightness">Brightness</label>
-                                <input id="brightness-slider" type="range" min="0" max="200" value="100" class="w-full">
-                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mt-2" data-lang="contrast">Contrast</label>
-                                <input id="contrast-slider" type="range" min="0" max="200" value="100" class="w-full">
-                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mt-2" data-lang="sharpness">Sharpness</label>
-                                <input id="sharpness-slider" type="range" min="0" max="100" value="0" class="w-full">
-                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mt-2" data-lang="saturation">Saturation</label>
-                                <input id="saturation-slider" type="range" min="0" max="200" value="100" class="w-full">
-                            </div>
+                            <button id="editor-download-btn" class="btn w-full mt-4">Download Edited Photo</button>
                         </div>
                      </div>
-                </div>
-                <div id="tab-content-pdf" class="tab-panel hidden">
-                     <div class="grid md:grid-cols-2 gap-10">
-                        <div class="space-y-6">
-                            <div><h3 class="font-semibold text-lg mb-2 text-center" data-lang="pdf-to-img-title">PDF to Image Converter</h3><button id="pdf-to-img-btn" class="btn w-full" data-lang="select-pdf">Select PDF to Convert</button><input type="file" id="pdf-to-img-input" class="hidden" accept=".pdf"></div>
-                            <div><h3 class="font-semibold text-lg mb-2 text-center" data-lang="img-to-pdf-title">Image to PDF Converter</h3><button id="img-to-pdf-btn" class="btn w-full" data-lang="select-images">Select Images to Convert</button><input type="file" id="img-to-pdf-input" class="hidden" accept="image/*" multiple></div>
-                            <div><h3 class="font-semibold text-lg mb-2 text-center" data-lang="pdf-combine-title">PDF Combiner</h3><button id="pdf-combine-btn" class="btn w-full" data-lang="select-pdfs">Select PDFs to Combine</button><input type="file" id="pdf-combine-input" class="hidden" accept=".pdf" multiple></div>
-                            <div id="pdf-analysis-container" class="hidden mt-4 text-center">
-                                <div id="pdf-preview-container" class="p-2 border rounded-md dark:border-slate-600">
-                                    <canvas id="pdf-preview-canvas" class="w-24 mx-auto"></canvas>
-                                    <p id="pdf-info" class="text-xs text-slate-500 mt-1"></p>
-                                </div>
-                                <button id="pdf-analyze-btn" class="btn btn-secondary text-sm mt-2">✨ Analyze Document</button>
-                            </div>
-                        </div>
-                        <div class="border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 pt-6 md:pt-0 md:pl-10">
-                             <h3 class="font-semibold text-lg mb-2 text-center" data-lang="signature-title">Digital Signature</h3>
-                             <p class="text-sm text-center text-slate-500 dark:text-slate-400 mb-3" data-lang="signature-subtitle">Draw your signature, save it, and apply it to a PDF.</p>
-                             <canvas id="signature-canvas" width="400" height="200" class="bg-slate-50 w-full"></canvas>
-                             <div class="flex space-x-2 mt-2">
-                                <button id="clear-signature-btn" class="btn btn-secondary text-sm flex-1" data-lang="clear">Clear</button>
-                                <button id="save-signature-btn" class="btn text-sm flex-1" data-lang="save-signature">Save Signature</button>
-                             </div>
-                             <div id="apply-signature-container" class="mt-4 hidden"><button id="apply-signature-btn" class="btn w-full" data-lang="apply-to-pdf">Apply to PDF</button><input type="file" id="apply-sig-pdf-input" class="hidden" accept=".pdf"></div>
-                        </div>
-                    </div>
-                </div>
-                <div id="tab-content-image" class="tab-panel hidden">
-                     <div class="grid md:grid-cols-2 gap-10">
-                         <div class="space-y-6">
-                            <h3 class="font-semibold text-lg mb-2 text-center" data-lang="merge-title">Merge Two Photos</h3>
-                            <div class="grid grid-cols-2 gap-4 mb-3">
-                                <div class="text-center">
-                                    <input type="file" id="merge-photo-input1" class="hidden" accept="image/*"><label for="merge-photo-input1" class="file-input-label text-sm !p-4" data-lang="photo1">Photo 1</label>
-                                    <img id="merge-preview1" class="hidden mt-2 w-24 h-24 object-contain mx-auto rounded">
-                                </div>
-                                <div class="text-center">
-                                    <input type="file" id="merge-photo-input2" class="hidden" accept="image/*"><label for="merge-photo-input2" class="file-input-label text-sm !p-4" data-lang="photo2">Photo 2</label>
-                                    <img id="merge-preview2" class="hidden mt-2 w-24 h-24 object-contain mx-auto rounded">
-                                </div>
-                            </div>
-                            <div class="flex space-x-3"><button id="merge-v-btn" class="btn btn-secondary w-full" data-lang="merge-v">Merge Vertically</button><button id="merge-h-btn" class="btn btn-secondary w-full" data-lang="merge-h">Merge Horizontally</button></div>
-                         </div>
-                         <div class="border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 pt-6 md:pt-0 md:pl-10">
-                            <h3 class="font-semibold text-lg mb-2 text-center" data-lang="compress-title">Image Compression</h3>
-                            <p class="text-sm text-center text-slate-500 dark:text-slate-400 mb-3" data-lang="compress-subtitle">Upload an image to reduce its file size.</p>
-                            <input type="file" id="compress-input" class="hidden" accept="image/*">
-                            <label for="compress-input" class="file-input-label block mb-4" data-lang="compress-upload">Upload Image to Compress</label>
-                             <div class="grid grid-cols-2 gap-4 items-center">
-                                <div>
-                                    <p class="text-xs font-semibold text-center mb-1">Original</p>
-                                    <img id="compress-preview" class="hidden w-full rounded-lg shadow-sm">
-                                    <p id="compress-info-orig" class="text-xs text-center mt-1"></p>
-                                </div>
-                                 <div>
-                                    <p class="text-xs font-semibold text-center mb-1">Compressed</p>
-                                    <img id="compress-output-preview" class="hidden w-full rounded-lg shadow-sm">
-                                     <p id="compress-info-new" class="text-xs text-center mt-1"></p>
-                                </div>
-                            </div>
-                            <div id="compress-options" class="hidden space-y-2 mt-4">
-                                <button data-quality="0.9" class="compress-btn btn btn-secondary w-full text-sm" data-lang="high-q">High Quality</button>
-                                <button data-quality="0.7" class="compress-btn btn btn-secondary w-full text-sm" data-lang="medium-q">Medium Quality</button>
-                                <button data-quality="0.5" class="compress-btn btn btn-secondary w-full text-sm" data-lang="low-q">Low Quality</button>
-                            </div>
-                         </div>
-                     </div>
-                </div>
-                 <div id="tab-content-tips" class="tab-panel hidden">
-                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-4" data-lang="tips-title">Tips for a Perfect Emirates ID Photo</h2>
-                    <ul class="list-disc list-inside space-y-2 mb-8 text-slate-700 dark:text-slate-400">
-                        <li data-lang="tip1">Background must be plain white with no shadows.</li>
-                        <li data-lang="tip2">Face the camera directly with a neutral expression (no smiling).</li>
-                        <li data-lang="tip3">Ensure your whole face from top of hair to bottom of chin is visible (70-80% of photo height).</li>
-                        <li data-lang="tip4">Take off glasses if possible. If not, ensure there's no glare on the lenses.</li>
-                        <li data-lang="tip5">Lighting should be even on your face, avoiding strong shadows.</li>
-                    </ul>
-                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4" data-lang="examples-title">Compliant Examples</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <img src="https://i.imgur.com/x2MS5sF.jpeg" alt="Compliant ICAO photo example 1" class="rounded-lg shadow-md aspect-[35/45] object-cover">
-                        <img src="https://i.imgur.com/L1n8iM3.jpeg" alt="Compliant ICAO photo example 2" class="rounded-lg shadow-md aspect-[35/45] object-cover">
-                        <img src="https://i.imgur.com/TDSiA28.jpeg" alt="Compliant ICAO photo example 3" class="rounded-lg shadow-md aspect-[35/45] object-cover">
-                        <img src="https://i.imgur.com/4q3C6bV.jpeg" alt="Compliant ICAO photo example 4" class="rounded-lg shadow-md aspect-[35/45] object-cover">
-                    </div>
                 </div>
             </div>
             
             <div class="border-t border-slate-200 dark:border-slate-700 mt-6 p-4 text-center">
-                <p class="text-xs text-slate-500 dark:text-slate-500" data-lang="sponsored-ad">Sponsored Ad</p>
-                <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg h-24 mt-2 flex items-center justify-center">
-                    <p class="text-slate-400 dark:text-slate-500">Ad space available</p>
-                </div>
+                 <p class="text-xs text-slate-500 dark:text-slate-500">Made with ❤️ by <a href="https://www.facebook.com/aimzworld007" target="_blank" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Aimzit</a></p>
             </div>
         </div>
 
         <div id="output-section" class="mt-10 hidden">
-            <h2 class="text-2xl font-bold text-center mb-4 dark:text-white" data-lang="files-ready">Your Files are Ready</h2>
+            <h2 class="text-2xl font-bold text-center mb-4">Your Files are Ready</h2>
             <div id="output-container" class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         </div>
-        
-        <footer class="text-center mt-12 py-6">
-            <p class="text-slate-600 dark:text-slate-400">Made with ❤️ by <a href="https://www.facebook.com/aimzworld007" target="_blank" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Aimzit</a></p>
-        </footer>
     </div>
 
     <script>
-    function initializeApp() {
-        if (typeof PDFLib === 'undefined' || typeof pdfjsLib === 'undefined' || typeof faceapi === 'undefined') {
-            setTimeout(initializeApp, 100);
-            return;
+    var cvReady = false;
+    function onOpenCvReady() {
+        cvReady = true;
+        const loaderText = document.getElementById('loader-text');
+        if (loaderText && loaderText.textContent.includes("OpenCV")) {
+            document.getElementById('loader-overlay').classList.add('hidden');
         }
-        
-        const { PDFDocument, rgb, degrees } = PDFLib;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-        
-        const allAppLogic = () => {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            const sunIcon = document.getElementById('sun-icon');
-            const moonIcon = document.getElementById('moon-icon');
-            const applyTheme = (theme) => {
-                if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    if(sunIcon) sunIcon.classList.add('hidden');
-                    if(moonIcon) moonIcon.classList.remove('hidden');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    if(sunIcon) sunIcon.classList.remove('hidden');
-                    if(moonIcon) moonIcon.classList.add('hidden');
-                }
-            };
-            if(darkModeToggle) {
-                darkModeToggle.addEventListener('click', () => {
-                    const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                    localStorage.setItem('theme', newTheme);
-                    applyTheme(newTheme);
-                });
-            }
-            const initialTheme = localStorage.getItem('theme') || 'dark';
-            applyTheme(initialTheme);
-
-            const tabNav = document.getElementById('tab-nav');
-            tabNav.addEventListener('click', (e) => {
-                if (e.target.matches('.tab')) {
-                    const activeTab = tabNav.querySelector('.active');
-                    if(activeTab) activeTab.classList.remove('active');
-                    e.target.classList.add('active');
-                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-                    const targetPanel = document.getElementById(`tab-content-${e.target.dataset.tab}`);
-                    if(targetPanel) targetPanel.classList.remove('hidden');
-                }
-            });
-            
-            const uaeEIDSpec = { aspectRatio: 35 / 45, headHeightMin: 0.7, headHeightMax: 0.8 };
-            let modelsLoaded = false;
-            const showLoader = (text = 'Processing...') => {
-                const loader = document.getElementById('loader-overlay');
-                const loaderText = document.getElementById('loader-text');
-                if(loaderText) loaderText.textContent = text;
-                if(loader) loader.classList.remove('hidden');
-            };
-            const hideLoader = () => {
-                const loader = document.getElementById('loader-overlay');
-                if(loader) loader.classList.add('hidden');
-            };
-
-            const ensureModelsLoaded = async () => {
-                if (!modelsLoaded) {
-                    showLoader('Loading AI models...');
-                    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
-                    await Promise.all([
-                        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-                    ]);
-                    modelsLoaded = true;
-                    hideLoader();
-                }
-            };
-            
-            let activeFileForEditor = null;
-            const verifyBtn = document.getElementById('verify-btn');
-            
-            document.getElementById('verify-photo-input').addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    activeFileForEditor = e.target.files[0];
-                    const preview = document.getElementById('verify-preview');
-                    preview.src = URL.createObjectURL(activeFileForEditor);
-                    preview.classList.remove('hidden');
-                    document.getElementById('verify-placeholder').classList.add('hidden');
-                    document.getElementById('verify-results-container').classList.add('hidden');
-                }
-            });
-
-            verifyBtn.addEventListener('click', async () => {
-                if (!activeFileForEditor) { alert('Please upload a photo first.'); return; }
-                await ensureModelsLoaded();
-                showLoader('Analyzing Emirates ID Photo...');
-
-                const image = await faceapi.bufferToImage(activeFileForEditor);
-                const detections = await faceapi.detectAllFaces(image, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
-                
-                const checks = [];
-                const img = new Image();
-                img.onload = () => {
-                    const aspectRatio = img.width / img.height;
-                    checks.push({
-                        pass: Math.abs(aspectRatio - uaeEIDSpec.aspectRatio) < 0.05,
-                        failMsg: `Incorrect aspect ratio. EID photos require a 35x45mm ratio (~${uaeEIDSpec.aspectRatio.toFixed(2)}).`,
-                        passMsg: "Photo aspect ratio is correct for Emirates ID.",
-                        fixCode: 'CROP'
-                    });
-
-                    if (detections.length === 1) {
-                        const detection = detections[0];
-                        const landmarks = detection.landmarks;
-                        const jawline = landmarks.getJawOutline();
-                        const topOfHead = Math.min(...jawline.map(p => p.y)) - (detection.detection.box.height * 0.15);
-                        const chin = Math.max(...jawline.map(p => p.y));
-                        const headHeight = chin - topOfHead;
-                        const headHeightRatio = headHeight / img.height;
-
-                        checks.push({
-                            pass: headHeightRatio >= uaeEIDSpec.headHeightMin && headHeightRatio <= uaeEIDSpec.headHeightMax,
-                            failMsg: `Head size is ${(headHeightRatio * 100).toFixed(0)}%. It must be between 70-80% of the photo height.`,
-                            passMsg: "Head size is compliant (70-80%).",
-                            fixCode: 'EDITOR'
-                        });
-                         checks.push({ pass: detection.expressions.neutral > 0.8, failMsg: "Expression is not neutral. No smiling allowed.", passMsg: "Neutral expression detected.", fixCode: 'AI_MAGIC' });
-                         checks.push({ pass: detections.length === 1, failMsg: "Multiple faces detected. Only one person is allowed.", passMsg: "Single face detected.", fixCode: null });
-                    } else {
-                        checks.push({ pass: false, failMsg: `Found ${detections.length} faces. Only one is allowed.`, passMsg: "", fixCode: null });
-                    }
-
-                    renderVerificationResults(checks);
-                    hideLoader();
-                };
-                img.src = URL.createObjectURL(activeFileForEditor);
-            });
-
-            function renderVerificationResults(checks) {
-                const list = document.getElementById('verify-results-list');
-                list.innerHTML = '';
-                const passedChecks = checks.filter(c => c.pass).length;
-                const score = Math.round((passedChecks / checks.length) * 100);
-                const isPass = score >= 90;
-                
-                const scoreCircle = document.getElementById('score-circle');
-                scoreCircle.className = `score-circle ${isPass ? 'bg-green-500' : 'bg-red-500'}`;
-                scoreCircle.textContent = `${score}%`;
-                
-                document.getElementById('score-text').textContent = isPass ? 'Pass' : 'Fail';
-                
-                checks.forEach(check => {
-                    const item = document.createElement('div');
-                    item.className = 'flex items-center justify-between p-3 rounded-lg ' + (check.pass ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50');
-                    const text = document.createElement('p');
-                    text.className = 'text-sm ' + (check.pass ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300');
-                    text.textContent = check.pass ? `✅ ${check.passMsg}` : `❌ ${check.failMsg}`;
-                    item.appendChild(text);
-
-                    if (!check.pass && check.fixCode) {
-                        const fixBtn = document.createElement('button');
-                        fixBtn.className = 'btn btn-secondary text-xs !py-1 !px-2 ml-2';
-                        fixBtn.textContent = 'Fix This';
-                        fixBtn.onclick = () => {
-                            let targetTab = 'editor';
-                            if (check.fixCode === 'AI_MAGIC') targetTab = 'ai-magic';
-                            document.querySelector(`[data-tab='${targetTab}']`).click();
-                        };
-                        item.appendChild(fixBtn);
-                    }
-                    list.appendChild(item);
-                });
-                document.getElementById('verify-results-container').classList.remove('hidden');
-            }
-        };
-        
-        allAppLogic();
     }
 
-    document.addEventListener('DOMContentLoaded', initializeApp);
+    document.addEventListener('DOMContentLoaded', () => {
+        const loader = document.getElementById('loader-overlay');
+        const loaderText = document.getElementById('loader-text');
+        if (!cvReady) {
+            loaderText.textContent = "Initializing WebAssembly (OpenCV)...";
+            loader.classList.remove('hidden');
+        }
+        
+        function checkLibrariesReady(callback) {
+            if (cvReady) {
+                callback();
+            } else {
+                setTimeout(() => checkLibrariesReady(callback), 150);
+            }
+        }
+        
+        checkLibrariesReady(initializeApp);
+    });
+
+    function initializeApp() {
+        // --- CONFIG & STATE ---
+        const EID_ASPECT_RATIO = 35 / 45;
+        let faceCascade;
+        let editorHistory = [];
+        let historyIndex = -1;
+        
+        // --- UI ELEMENTS ---
+        const loader = {
+            overlay: document.getElementById('loader-overlay'),
+            text: document.getElementById('loader-text'),
+            show: (msg = "Processing...") => { loader.text.textContent = msg; loader.overlay.classList.remove('hidden'); },
+            hide: () => loader.overlay.classList.add('hidden')
+        };
+        const toast = {
+            el: document.getElementById('toast'),
+            show: (msg) => {
+                toast.el.textContent = msg;
+                toast.el.classList.add('show');
+                setTimeout(() => toast.el.classList.remove('show'), 3000);
+            }
+        };
+
+        // --- HELPERS ---
+        const fileToDataURL = (file) => new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result);
+            reader.onerror = rej;
+            reader.readAsDataURL(file);
+        });
+        const downloadDataURL = (dataURL, filename) => {
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+        const addOutput = (dataURL, filename) => {
+            const outSec = document.getElementById('output-section');
+            const outCont = document.getElementById('output-container');
+            if(!outSec || !outCont) return;
+            outSec.classList.remove('hidden');
+            const wrap = document.createElement('div');
+            wrap.className = 'text-center p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg';
+            const prev = document.createElement('img');
+            prev.src = dataURL;
+            prev.className = 'w-full h-32 object-contain rounded-md mb-2';
+            const nameEl = document.createElement('p');
+            nameEl.textContent = filename;
+            nameEl.className = 'text-xs break-all font-semibold';
+            const dlBtn = document.createElement('button');
+            dlBtn.textContent = 'Download';
+            dlBtn.className = 'btn btn-secondary !text-xs !py-1 !px-2 mt-2 w-full';
+            dlBtn.onclick = () => downloadDataURL(dataURL, filename);
+            wrap.append(prev, nameEl, dlBtn);
+            outCont.appendChild(wrap);
+            outSec.scrollIntoView({ behavior: 'smooth' });
+        };
+         const enableDragDrop = (zone, input, callback) => {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                zone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
+            });
+            ['dragenter', 'dragover'].forEach(eventName => zone.addEventListener(eventName, () => zone.classList.add('drag-over')));
+            ['dragleave', 'drop'].forEach(eventName => zone.addEventListener(eventName, () => zone.classList.remove('drag-over')));
+            zone.addEventListener('drop', e => {
+                input.files = e.dataTransfer.files;
+                callback({ target: input });
+            });
+        };
+        
+        // --- GEMINI API ("Nano Banana") ---
+        async function callGeminiAPI(payload) {
+             const model = "gemini-2.5-flash-image-preview";
+             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=`;
+             loader.show("Communicating with AI...");
+             try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error ? error.error.message : 'Unknown API error');
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates[0].content.parts[0].inlineData) {
+                    return result.candidates[0].content.parts[0].inlineData;
+                }
+                throw new Error("No image data in AI response.");
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                toast.show(`AI Error: ${error.message}`);
+                return null;
+            } finally {
+                loader.hide();
+            }
+        }
+        
+        // --- FEATURE SETUP ---
+        
+        function setupCoreUI() {
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const applyTheme = (theme) => {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                document.getElementById('sun-icon').classList.toggle('hidden', theme === 'dark');
+                document.getElementById('moon-icon').classList.toggle('hidden', theme !== 'dark');
+            };
+            darkModeToggle.addEventListener('click', () => {
+                const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+            applyTheme(localStorage.getItem('theme') || 'dark');
+            
+            document.getElementById('tab-nav').addEventListener('click', (e) => {
+                if (e.target.matches('.tab')) {
+                    document.querySelector('.tab.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+                    document.getElementById(`tab-content-${e.target.dataset.tab}`).classList.remove('hidden');
+                }
+            });
+        }
+        
+        async function loadFaceCascade() {
+            if (faceCascade) return;
+            loader.show("Initializing Face Detector (WASM)...");
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml');
+                const cascadeFile = await response.text();
+                cv.FS_createDataFile('/', 'haarcascade.xml', cascadeFile, true, false, false);
+                faceCascade = new cv.CascadeClassifier();
+                if (!faceCascade.load('haarcascade.xml')) throw new Error("Failed to load cascade file");
+            } catch (error) { toast.show("Error: Could not load face detector."); console.error(error); } 
+            finally { loader.hide(); }
+        }
+        
+        async function verifyPhotoWithWASM(imageElement) {
+            if (!faceCascade) await loadFaceCascade();
+            if (!faceCascade) return [];
+            
+            let src;
+            try {
+                src = cv.imread(imageElement);
+            } catch (e) {
+                console.error(e);
+                toast.show("Error reading image for analysis.");
+                return [];
+            }
+            
+            const gray = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+            let faces = new cv.RectVector();
+            faceCascade.detectMultiScale(gray, faces, 1.1, 5, 0, new cv.Size(30, 30));
+            
+            const checks = [];
+            const { width, height } = src.size();
+            const aspectRatio = width / height;
+            checks.push({pass: Math.abs(aspectRatio - EID_ASPECT_RATIO) < 0.05, msg: `Aspect ratio is ${aspectRatio.toFixed(2)}. Required: ~${EID_ASPECT_RATIO.toFixed(2)}.`});
+            if (faces.size() === 1) {
+                const face = faces.get(0);
+                const headHeight = face.height * 1.5; 
+                const headRatio = headHeight / height;
+                checks.push({ pass: true, msg: "Single face detected." });
+                checks.push({pass: headRatio >= 0.7 && headRatio <= 0.8, msg: `Head size is ~${(headRatio * 100).toFixed(0)}% of photo height. Required: 70-80%.`});
+            } else {
+                checks.push({ pass: false, msg: `Found ${faces.size()} faces. Required: 1.` });
+            }
+            src.delete(); gray.delete(); faces.delete();
+            return checks;
+        }
+
+        function setupIcaoChecker() {
+            const input = document.getElementById('verify-photo-input'), dropZone = document.getElementById('verify-drop-zone'), preview = document.getElementById('verify-preview'), placeholder = document.getElementById('verify-placeholder'), verifyBtn = document.getElementById('verify-btn'), resultsContainer = document.getElementById('verify-results-container'), resultsList = document.getElementById('verify-results-list');
+
+            const handleFile = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                preview.src = URL.createObjectURL(file);
+                preview.onload = () => {
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    verifyBtn.disabled = false;
+                    resultsContainer.classList.add('hidden');
+                };
+            };
+            input.addEventListener('change', handleFile);
+            enableDragDrop(dropZone, input, handleFile);
+
+            verifyBtn.addEventListener('click', async () => {
+                loader.show("Analyzing with WASM...");
+                const checks = await verifyPhotoWithWASM(preview);
+                loader.hide();
+                resultsList.innerHTML = '';
+                if(checks.length === 0) return;
+                const passedCount = checks.filter(c => c.pass).length;
+                const score = Math.round((passedCount / checks.length) * 100);
+                document.getElementById('score-circle').className = `score-circle ${score > 80 ? 'bg-green-500' : 'bg-red-500'}`;
+                document.getElementById('score-circle').textContent = `${score}%`;
+                document.getElementById('score-text').textContent = score > 80 ? 'Pass' : 'Fail';
+                checks.forEach(check => {
+                    const item = document.createElement('div');
+                    item.className = `flex items-center p-3 rounded-lg ${check.pass ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`;
+                    item.innerHTML = `<p class="text-sm ${check.pass ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}">${check.pass ? '✅' : '❌'} ${check.msg}</p>`;
+                    resultsList.appendChild(item);
+                });
+                resultsContainer.classList.remove('hidden');
+            });
+        }
+        
+        function setupAiStudio() {
+            const input = document.getElementById('ai-photo-input'), preview = document.getElementById('ai-preview'), placeholder = document.getElementById('ai-placeholder'), output = document.getElementById('ai-output'), generateBtn = document.getElementById('ai-generate-btn');
+            let file = null;
+
+            input.addEventListener('change', async e => {
+                file = e.target.files[0]; if (!file) return;
+                preview.src = await fileToDataURL(file);
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                generateBtn.disabled = false;
+            });
+
+            generateBtn.addEventListener('click', async () => {
+                if (!file) return;
+                const base64Data = (await fileToDataURL(file)).split(',')[1];
+                 const result = await callGeminiAPI({
+                     contents: [{ parts: [ { text: "Transform this photo into a professional, ICAO-compliant ID photograph: neutral expression, facing forward, plain solid white background, even studio lighting, 35:45 aspect ratio." }, { inlineData: { mimeType: file.type, data: base64Data } } ] }],
+                     generationConfig: { responseModalities: ['IMAGE'] }
+                });
+                if (result) {
+                    const dataUrl = `data:${result.mimeType};base64,${result.data}`;
+                    output.src = dataUrl;
+                    output.classList.remove('hidden');
+                    addOutput(dataUrl, 'ai-generated-photo.png');
+                }
+            });
+        }
+        
+        function setupEditor() {
+            const input = document.getElementById('editor-photo-input'), uploader = document.getElementById('editor-uploader'), workspace = document.getElementById('editor-workspace'), canvas = document.getElementById('editor-canvas'), ctx = canvas.getContext('2d'), undoBtn = document.getElementById('undo-btn'), redoBtn = document.getElementById('redo-btn');
+            
+            const saveState = () => { if (historyIndex < editorHistory.length - 1) { editorHistory = editorHistory.slice(0, historyIndex + 1); } editorHistory.push(canvas.toDataURL()); historyIndex++; updateHistoryButtons(); };
+            const updateHistoryButtons = () => { undoBtn.disabled = historyIndex <= 0; redoBtn.disabled = historyIndex >= editorHistory.length - 1; };
+            const applyHistoryState = () => { const img = new Image(); img.onload = () => { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); }; img.src = editorHistory[historyIndex]; };
+            
+            const loadImage = (src) => { const img = new Image(); img.crossOrigin = "Anonymous"; img.onload = () => { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); editorHistory = []; historyIndex = -1; saveState(); uploader.classList.add('hidden'); workspace.classList.remove('hidden'); }; img.src = src; };
+            input.addEventListener('change', async e => { if (e.target.files[0]) loadImage(await fileToDataURL(e.target.files[0])); });
+            
+            undoBtn.addEventListener('click', () => { if (historyIndex > 0) { historyIndex--; applyHistoryState(); updateHistoryButtons(); } });
+            redoBtn.addEventListener('click', () => { if (historyIndex < editorHistory.length - 1) { historyIndex++; applyHistoryState(); updateHistoryButtons(); } });
+
+            document.querySelectorAll('.editor-tool-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (historyIndex < 0) return;
+                    const img = new Image();
+                    img.onload = () => {
+                        const { width, height } = canvas;
+                        ctx.save();
+                        ctx.clearRect(0, 0, width, height);
+                        switch (btn.dataset.tool) {
+                            case 'rotate':
+                                canvas.width = height; canvas.height = width;
+                                ctx.translate(height / 2, width / 2);
+                                ctx.rotate(-90 * Math.PI / 180);
+                                ctx.drawImage(img, -width / 2, -height / 2);
+                                break;
+                            case 'flip':
+                                ctx.translate(width, 0); ctx.scale(-1, 1);
+                                ctx.drawImage(img, 0, 0);
+                                break;
+                            case 'crop':
+                                const targetHeight = width / EID_ASPECT_RATIO;
+                                canvas.height = targetHeight;
+                                ctx.drawImage(img, 0, (height - targetHeight) / 2, width, targetHeight, 0, 0, width, targetHeight);
+                                break;
+                            case 'enhance':
+                                ctx.filter = 'contrast(1.1) brightness(1.05)';
+                                ctx.drawImage(img, 0, 0);
+                                break;
+                        }
+                        ctx.restore();
+                        saveState();
+                    };
+                    img.src = editorHistory[historyIndex];
+                });
+            });
+
+            document.getElementById('editor-download-btn').addEventListener('click', () => { if(historyIndex >= 0) downloadDataURL(editorHistory[historyIndex], 'edited-photo.png'); });
+        }
+        
+        // --- INITIALIZATION ---
+        function main() {
+            setupCoreUI();
+            setupIcaoChecker();
+            setupAiStudio();
+            setupEditor();
+            loadFaceCascade(); // Pre-load the model
+        }
+
+        main();
+    }
     </script>
 </body>
 </html>
