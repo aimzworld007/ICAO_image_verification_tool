@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICAO Photo & Document Tool</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- pdf.js for rendering PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script> 
+    <!-- pdf-lib.js for creating and merging PDFs -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <!-- face-api.js for ICAO photo verification -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <style>
+        /* Custom styles for a professional UI */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden { display: none; }
+        
+        .main-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .tab { cursor: pointer; padding: 1rem; font-weight: 500; color: #6b7280; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab:hover { color: #3b82f6; }
+        .tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+        
+        .btn { background-color: #3b82f6; color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; text-align: center; display: inline-block; }
+        .btn:hover { background-color: #2563eb; }
+        .btn-secondary { background-color: #6b7280; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-success { background-color: #16a34a; }
+        .btn-danger { background-color: #dc2626; }
+        
+        .file-input-label { border: 2px dashed #d1d5db; padding: 2rem; text-align: center; cursor: pointer; border-radius: 0.5rem; transition: background-color 0.2s, border-color 0.2s; }
+        .file-input-label:hover { background-color: #f9fafb; border-color: #3b82f6; }
+
+        /* Styles for the verification score */
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Loading Overlay -->
+    <div id="loader-overlay" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
+        <div class="loader"></div>
+        <p id="loader-text" class="text-white text-lg ml-4">Processing...</p>
+    </div>
+    
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <header class="text-center mb-8 flex items-center justify-center space-x-4">
+            <svg class="w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286Zm0 13.036h.008v.008h-.008v-.008Z" /></svg>
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Professional ICAO Photo Tool</h1>
+                <p class="text-md text-gray-600 mt-1">Verify, edit, and prepare your photos and documents with professional-grade tools.</p>
+            </div>
+        </header>
+
+        <!-- Main Card with Tabs -->
+        <div class="main-card">
+            <!-- Tabs Navigation -->
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-4 px-6" id="tab-nav">
+                    <button class="tab active" data-tab="icao">ICAO Photo Check</button>
+                    <button class="tab" data-tab="editor">Advanced Photo Editor</button>
+                    <button class="tab" data-tab="pdf">PDF Tools</button>
+                    <button class="tab" data-tab="image">Image Tools</button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6 md:p-8">
+                <!-- ICAO Tab Panel -->
+                <div id="tab-content-icao" class="tab-panel">
+                     <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Left Column: Upload & Preview -->
+                        <div>
+                            <input type="file" id="verify-photo-input" class="hidden" accept="image/*">
+                            <label for="verify-photo-input" class="file-input-label block mb-4"><span class="font-semibold text-blue-600">Click to upload</span> or drag & drop</label>
+                            <div class="relative w-full aspect-[35/45] bg-gray-100 rounded-lg flex items-center justify-center">
+                                <img id="verify-preview" class="hidden object-contain max-w-full max-h-full rounded-lg" alt="Photo Preview">
+                                <p id="verify-placeholder" class="text-gray-500">Photo preview</p>
+                            </div>
+                            <button id="verify-btn" class="btn w-full mt-4">Verify Photo</button>
+                             <div class="text-center mt-4"><a href="https://i.imgur.com/x2MS5sF.jpeg" target="_blank" class="text-sm text-blue-600 hover:underline">See an example of a perfect photo</a></div>
+                        </div>
+                        <!-- Right Column: Results & Suggestions -->
+                        <div id="verify-results-container" class="hidden">
+                            <h3 class="text-xl font-bold mb-4">Verification Results</h3>
+                            <div class="flex items-center space-x-4 mb-6">
+                                <div id="score-circle" class="score-circle"></div>
+                                <div id="score-text" class="text-2xl font-bold"></div>
+                            </div>
+                            <div id="verify-results-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Editor Tab Panel -->
+                <div id="tab-content-editor" class="tab-panel hidden">
+                     <input type="file" id="editor-photo-input" class="hidden" accept="image/*">
+                     <label for="editor-photo-input" class="file-input-label block mb-4" id="editor-uploader">Upload a photo to start editing</label>
+                     <div id="editor-workspace" class="hidden grid md:grid-cols-2 gap-8 items-start">
+                        <!-- Editor Left: Canvas -->
+                        <div>
+                             <canvas id="editor-canvas" class="w-full rounded-lg border"></canvas>
+                             <button id="editor-download-btn" class="btn w-full mt-4">Download Edited Photo</button>
+                        </div>
+                        <!-- Editor Right: Tools -->
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">Essentials</h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button id="crop-btn" class="btn text-sm">Crop to ID Ratio</button>
+                                    <button id="bg-white-btn" class="btn text-sm">White Background</button>
+                                    <button id="rotate-left-btn" class="btn btn-secondary text-sm">Rotate Left</button>
+                                    <button id="flip-h-btn" class="btn btn-secondary text-sm">Flip Horizontal</button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2">Adjustments</h4>
+                                <label class="block text-xs font-medium text-gray-700">Brightness</label>
+                                <input id="brightness-slider" type="range" min="0" max="200" value="100" class="w-full">
+                                <label class="block text-xs font-medium text-gray-700 mt-2">Contrast</label>
+                                <input id="contrast-slider" type="range" min="0" max="200" value="100" class="w-full">
+                                 <label class="block text-xs font-medium text-gray-700 mt-2">Sharpness</label>
+                                <input id="sharpness-slider" type="range" min="0" max="100" value="0" class="w-full">
+                                <label class="block text-xs font-medium text-gray-700 mt-2">Saturation</label>
+                                <input id="saturation-slider" type="range" min="0" max="200" value="100" class="w-full">
+                            </div>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- PDF Tools Tab Panel -->
+                <div id="tab-content-pdf" class="tab-panel hidden">
+                    <div class="space-y-6 max-w-lg mx-auto">
+                        <div><h3 class="font-semibold text-lg mb-2 text-center">PDF to Image Converter</h3><button id="pdf-to-img-btn" class="btn w-full">Select PDF to Convert</button><input type="file" id="pdf-to-img-input" class="hidden" accept=".pdf"></div>
+                        <div><h3 class="font-semibold text-lg mb-2 text-center">Image to PDF Converter</h3><button id="img-to-pdf-btn" class="btn w-full">Select Images to Convert</button><input type="file" id="img-to-pdf-input" class="hidden" accept="image/*" multiple></div>
+                        <div><h3 class="font-semibold text-lg mb-2 text-center">PDF Combiner</h3><button id="pdf-combine-btn" class="btn w-full">Select PDFs to Combine</button><input type="file" id="pdf-combine-input" class="hidden" accept=".pdf" multiple></div>
+                    </div>
+                </div>
+                <!-- Image Tools Tab Panel -->
+                <div id="tab-content-image" class="tab-panel hidden">
+                    <div class="space-y-6 max-w-lg mx-auto">
+                        <div>
+                             <h3 class="font-semibold text-lg mb-2 text-center">Merge Two Photos</h3>
+                             <div class="grid grid-cols-2 gap-2 mb-3">
+                                 <div class="text-center">
+                                     <input type="file" id="merge-photo-input1" class="hidden" accept="image/*"><label for="merge-photo-input1" class="file-input-label text-xs !p-4">Photo 1</label>
+                                     <img id="merge-preview1" class="hidden mt-2 w-24 h-24 object-contain mx-auto rounded">
+                                 </div>
+                                <div class="text-center">
+                                    <input type="file" id="merge-photo-input2" class="hidden" accept="image/*"><label for="merge-photo-input2" class="file-input-label text-xs !p-4">Photo 2</label>
+                                    <img id="merge-preview2" class="hidden mt-2 w-24 h-24 object-contain mx-auto rounded">
+                                </div>
+                            </div>
+                            <div class="flex space-x-3"><button id="merge-v-btn" class="btn btn-secondary w-full">Merge Vertically</button><button id="merge-h-btn" class="btn btn-secondary w-full">Merge Horizontally</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div id="output-section" class="mt-10 hidden"><h2 class="text-2xl font-bold text-center mb-4">Your Files are Ready</h2><div id="output-container" class="bg-white p-4 rounded-lg shadow-lg grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Library Setup ---
+        const { PDFDocument } = PDFLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+
+        // --- Global State ---
+        let editorImage = null; let editorOriginalImage = null; let editorRotation = 0; let editorFlipH = false;
+        let activeFileForEditor = null; // Holds the file object for the editor
+
+        // --- UI Elements ---
+        const loaderOverlay = document.getElementById('loader-overlay');
+        const loaderText = document.getElementById('loader-text');
+        const outputSection = document.getElementById('output-section');
+        const outputContainer = document.getElementById('output-container');
+        const tabNav = document.getElementById('tab-nav');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        // --- Utility Functions ---
+        const showLoader = (text = 'Processing...') => { loaderText.textContent = text; loaderOverlay.classList.remove('hidden'); };
+        const hideLoader = () => loaderOverlay.classList.add('hidden');
+
+        const createDownloadLink = (url, filename, type) => {
+            const container = document.createElement('div'); container.className = 'text-center border p-2 rounded-lg';
+            if (type === 'image') { const img = document.createElement('img'); img.src = url; img.className = 'w-full h-auto object-contain rounded mb-2'; container.appendChild(img); }
+            else { const p = document.createElement('p'); p.textContent = filename.substring(0, 15) + '...'; p.className = 'mb-2 p-4 bg-gray-200 rounded text-sm'; container.appendChild(p); }
+            const downloadBtn = document.createElement('a'); downloadBtn.href = url; downloadBtn.download = filename; downloadBtn.className = 'btn text-xs w-full block'; downloadBtn.textContent = `Download`; container.appendChild(downloadBtn);
+            return container;
+        };
+
+        const displayMultipleOutputs = (elements) => {
+            outputSection.classList.remove('hidden'); outputContainer.innerHTML = '';
+            elements.forEach(el => outputContainer.appendChild(el));
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        };
+
+        // --- Tab Switching ---
+        const switchTab = (tabName) => {
+            tabNav.querySelector('.active').classList.remove('active');
+            tabNav.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            tabPanels.forEach(panel => panel.classList.add('hidden'));
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+        };
+        tabNav.addEventListener('click', (e) => { if (e.target.matches('.tab')) switchTab(e.target.dataset.tab); });
+        
+        // --- Face API Models ---
+        const loadFaceApiModels = async () => {
+            showLoader('Loading AI models...');
+            const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+            await Promise.all([ faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL), faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL), faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL) ]);
+            hideLoader();
+        };
+        loadFaceApiModels();
+
+        // --- ICAO Verification ---
+        const verifyPhotoInput = document.getElementById('verify-photo-input');
+        const verifyPreview = document.getElementById('verify-preview');
+        const verifyPlaceholder = document.getElementById('verify-placeholder');
+        
+        verifyPhotoInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                activeFileForEditor = file;
+                verifyPreview.src = URL.createObjectURL(file);
+                verifyPreview.classList.remove('hidden');
+                verifyPlaceholder.classList.add('hidden');
+                document.getElementById('verify-results-container').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            if (!activeFileForEditor) { alert('Please upload a photo first.'); return; }
+            showLoader('Analyzing photo...');
+            const image = await faceapi.bufferToImage(activeFileForEditor);
+            const detections = await faceapi.detectAllFaces(image, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
+            
+            const checks = [];
+            checks.push({ pass: detections.length === 1, failMsg: `Found ${detections.length} faces. Only one is allowed.`, passMsg: "Correct number of faces (1) detected.", fixCode: null });
+            if (detections.length === 1) {
+                const detection = detections[0];
+                checks.push({ pass: detection.expressions.neutral > 0.8, failMsg: "Expression is not neutral. No smiling allowed.", passMsg: "Neutral expression detected.", fixCode: null });
+                const faceCenterX = detection.detection.box.x + detection.detection.box.width / 2;
+                checks.push({ pass: faceCenterX > image.width * 0.4 && faceCenterX < image.width * 0.6, failMsg: "Face is not centered horizontally.", passMsg: "Face appears centered.", fixCode: 'EDITOR' });
+            }
+            const img = new Image();
+            img.onload = () => {
+                const aspectRatio = img.width / img.height;
+                checks.push({ pass: aspectRatio > 0.75 && aspectRatio < 0.80, failMsg: `Incorrect aspect ratio. Should be ~0.78, is ${aspectRatio.toFixed(2)}.`, passMsg: "Photo aspect ratio is correct.", fixCode: 'CROP' });
+                renderVerificationResults(checks);
+                hideLoader();
+            };
+            img.src = URL.createObjectURL(activeFileForEditor);
+        });
+
+        const renderVerificationResults = (checks) => {
+            const container = document.getElementById('verify-results-container');
+            const list = document.getElementById('verify-results-list');
+            const scoreCircle = document.getElementById('score-circle');
+            const scoreText = document.getElementById('score-text');
+            list.innerHTML = '';
+            const passedChecks = checks.filter(c => c.pass).length;
+            const score = Math.round((passedChecks / checks.length) * 100);
+            const isPass = score >= 90;
+            scoreCircle.className = `score-circle ${isPass ? 'bg-green-600' : 'bg-red-600'}`;
+            scoreCircle.textContent = `${score}%`;
+            scoreText.textContent = isPass ? 'Pass' : 'Fail';
+            checks.forEach(check => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 rounded-lg ' + (check.pass ? 'bg-green-50' : 'bg-red-50');
+                const text = document.createElement('p');
+                text.className = 'text-sm ' + (check.pass ? 'text-green-800' : 'text-red-800');
+                text.textContent = check.pass ? `✅ ${check.passMsg}` : `❌ ${check.failMsg}`;
+                item.appendChild(text);
+                if (!check.pass && check.fixCode) {
+                    const fixBtn = document.createElement('button');
+                    fixBtn.className = 'btn btn-secondary text-xs py-1 px-2';
+                    fixBtn.textContent = 'Fix This';
+                    fixBtn.onclick = () => {
+                        loadPhotoIntoEditor(activeFileForEditor);
+                        switchTab('editor');
+                        if (check.fixCode === 'CROP') { setTimeout(() => document.getElementById('crop-btn').click(), 100); }
+                    };
+                    item.appendChild(fixBtn);
+                }
+                list.appendChild(item);
+            });
+            container.classList.remove('hidden');
+        };
+
+        // --- Photo Editor ---
+        const editorPhotoInput = document.getElementById('editor-photo-input');
+        const editorWorkspace = document.getElementById('editor-workspace');
+        const editorCanvas = document.getElementById('editor-canvas');
+        const ctx = editorCanvas.getContext('2d');
+        const allSliders = document.querySelectorAll('#editor-workspace input[type="range"]');
+        const loadPhotoIntoEditor = async (file) => {
+            if (!file) return;
+            showLoader('Loading photo into editor...');
+            editorOriginalImage = await createImageBitmap(file);
+            editorImage = editorOriginalImage;
+            editorRotation = 0; editorFlipH = false;
+            allSliders.forEach(s => s.value = s.id.includes('sharpness') ? 0 : 100);
+            document.getElementById('editor-uploader').classList.add('hidden');
+            editorWorkspace.classList.remove('hidden');
+            drawEditorCanvas();
+            hideLoader();
+        };
+        editorPhotoInput.addEventListener('change', e => loadPhotoIntoEditor(e.target.files[0]));
+        const drawEditorCanvas = () => {
+            if (!editorImage) return;
+            const filters = [`brightness(${document.getElementById('brightness-slider').value}%)`, `contrast(${document.getElementById('contrast-slider').value}%)`, `saturate(${document.getElementById('saturation-slider').value}%)`, `blur(${document.getElementById('sharpness-slider').value / 50}px)`];
+            ctx.filter = filters.join(' ');
+            const rads = editorRotation * Math.PI / 180;
+            editorCanvas.width = Math.abs(Math.cos(rads) * editorImage.width) + Math.abs(Math.sin(rads) * editorImage.height);
+            editorCanvas.height = Math.abs(Math.sin(rads) * editorImage.width) + Math.abs(Math.cos(rads) * editorImage.height);
+            ctx.translate(editorCanvas.width / 2, editorCanvas.height / 2);
+            ctx.rotate(rads);
+            if (editorFlipH) { ctx.scale(-1, 1); }
+            ctx.drawImage(editorImage, -editorImage.width / 2, -editorImage.height / 2);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        };
+        allSliders.forEach(slider => slider.addEventListener('input', drawEditorCanvas));
+        document.getElementById('rotate-left-btn').addEventListener('click', () => { editorRotation -= 90; drawEditorCanvas(); });
+        document.getElementById('flip-h-btn').addEventListener('click', () => { editorFlipH = !editorFlipH; drawEditorCanvas(); });
+        document.getElementById('crop-btn').addEventListener('click', async () => {
+            if (!editorImage) return;
+            showLoader('Cropping...');
+            const targetAspect = 35 / 45;
+            let sx=0, sy=0, sWidth=editorImage.width, sHeight=editorImage.height;
+            if (sWidth / sHeight > targetAspect) { sWidth = sHeight * targetAspect; sx = (editorImage.width - sWidth) / 2; }
+            else { sHeight = sWidth / targetAspect; sy = (editorImage.height - sHeight) / 2; }
+            editorImage = await createImageBitmap(editorImage, sx, sy, sWidth, sHeight);
+            drawEditorCanvas();
+            hideLoader();
+        });
+        document.getElementById('bg-white-btn').addEventListener('click', () => {
+            if (!editorImage) return;
+            showLoader('Applying white background...');
+            drawEditorCanvas();
+            const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i+1], b = data[i+2];
+                if (!(r > 95 && g > 40 && b > 20 && Math.max(r,g,b) - Math.min(r,g,b) > 15)) { data[i] = data[i+1] = data[i+2] = 255; }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            hideLoader();
+        });
+        document.getElementById('editor-download-btn').addEventListener('click', () => {
+            editorCanvas.toBlob(blob => { displayMultipleOutputs([createDownloadLink(URL.createObjectURL(blob), 'edited-photo.png', 'image')]); }, 'image/png');
+        });
+
+        // --- PDF & Image Tools (Handlers) ---
+        const handlePdfToImg = async (e) => {
+            const file = e.target.files[0]; if (!file) return; showLoader('Converting PDF...');
+            const data = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(data).promise;
+            const outputs = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i); const viewport = page.getViewport({ scale: 2.0 });
+                const canvas = document.createElement('canvas'); canvas.height = viewport.height; canvas.width = viewport.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                outputs.push(createDownloadLink(canvas.toDataURL(), `page_${i}.png`, 'image'));
+            }
+            displayMultipleOutputs(outputs); hideLoader();
+        };
+        const handleImgToPdf = async (e) => {
+            if (e.target.files.length === 0) return; showLoader('Creating PDF...');
+            const pdfDoc = await PDFDocument.create();
+            for (const file of e.target.files) {
+                const page = pdfDoc.addPage(); const bytes = await file.arrayBuffer();
+                const image = file.type === 'image/png' ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
+                page.setSize(image.width, image.height); page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+            }
+            const pdfBytes = await pdfDoc.save(); const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            displayMultipleOutputs([createDownloadLink(URL.createObjectURL(blob), 'converted.pdf', 'pdf')]); hideLoader();
+        };
+        const handlePdfCombine = async (e) => {
+            if (e.target.files.length < 2) { alert('Please select at least two PDFs.'); return; } showLoader('Combining PDFs...');
+            const mergedPdf = await PDFDocument.create();
+            for (const file of e.target.files) {
+                const pdf = await PDFDocument.load(await file.arrayBuffer());
+                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                copiedPages.forEach(page => mergedPdf.addPage(page));
+            }
+            const pdfBytes = await mergedPdf.save(); const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            displayMultipleOutputs([createDownloadLink(URL.createObjectURL(blob), 'combined.pdf', 'pdf')]); hideLoader();
+        };
+        
+        const setupMergePreview = (inputId, previewId) => {
+            document.getElementById(inputId).addEventListener('change', (e) => {
+                if(e.target.files && e.target.files[0]) {
+                    const preview = document.getElementById(previewId);
+                    preview.src = URL.createObjectURL(e.target.files[0]);
+                    preview.classList.remove('hidden');
+                }
+            });
+        };
+        setupMergePreview('merge-photo-input1', 'merge-preview1');
+        setupMergePreview('merge-photo-input2', 'merge-preview2');
+
+        const handlePhotoMerge = async (mode) => {
+            const input1 = document.getElementById('merge-photo-input1'); const input2 = document.getElementById('merge-photo-input2');
+            if (!input1.files.length || !input2.files.length) { alert('Please select both photos to merge.'); return; }
+            showLoader('Merging photos...');
+            const img1 = await createImageBitmap(input1.files[0]); const img2 = await createImageBitmap(input2.files[0]);
+            const canvas = document.createElement('canvas'); const ctxMerge = canvas.getContext('2d');
+            if (mode === 'vertical') {
+                const maxWidth = Math.max(img1.width, img2.width);
+                const h1 = img1.height * (maxWidth / img1.width); const h2 = img2.height * (maxWidth / img2.width);
+                canvas.width = maxWidth; canvas.height = h1 + h2;
+                ctxMerge.drawImage(img1, 0, 0, maxWidth, h1); ctxMerge.drawImage(img2, 0, h1, maxWidth, h2);
+            } else {
+                const maxHeight = Math.max(img1.height, img2.height);
+                const w1 = img1.width * (maxHeight / img1.height); const w2 = img2.width * (maxHeight / img2.height);
+                canvas.width = w1 + w2; canvas.height = maxHeight;
+                ctxMerge.drawImage(img1, 0, 0, w1, maxHeight); ctxMerge.drawImage(img2, w1, 0, w2, maxHeight);
+            }
+            canvas.toBlob(blob => { displayMultipleOutputs([createDownloadLink(URL.createObjectURL(blob), `merged-${mode}.png`, 'image')]); hideLoader(); }, 'image/png');
+        };
+
+        // --- Button Event Listeners ---
+        document.getElementById('pdf-to-img-btn').addEventListener('click', () => document.getElementById('pdf-to-img-input').click());
+        document.getElementById('pdf-to-img-input').addEventListener('change', handlePdfToImg);
+        document.getElementById('img-to-pdf-btn').addEventListener('click', () => document.getElementById('img-to-pdf-input').click());
+        document.getElementById('img-to-pdf-input').addEventListener('change', handleImgToPdf);
+        document.getElementById('pdf-combine-btn').addEventListener('click', () => document.getElementById('pdf-combine-input').click());
+        document.getElementById('pdf-combine-input').addEventListener('change', handlePdfCombine);
+        document.getElementById('merge-v-btn').addEventListener('click', () => handlePhotoMerge('vertical'));
+        document.getElementById('merge-h-btn').addEventListener('click', () => handlePhotoMerge('horizontal'));
+    });
+    </script>
+</body>
+</html>
+
